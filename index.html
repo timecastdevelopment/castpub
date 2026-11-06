@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" manifest="cache.manifest">
+  <head>
+    <meta charset="utf-8">
+    <title>Player</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <script>
+      const CHANNEL = 'urn:x-cast:com.castcamera';
+      const context = cast.framework.CastReceiverContext.getInstance();
+      const options = new cast.framework.CastReceiverOptions();
+      options.disableIdleTimeout = true;
+      context.addEventListener( cast.framework.system.EventType.SENDER_DISCONNECTED, function(event) {
+        console.log('Sender disconnected: ' + event.data);
+        window.close();
+      });
+      context.addCustomMessageListener(CHANNEL, function(event) {
+        console.log("Event: "+JSON.stringify(event));
+        if( event.data.command && event.data.command=='heartbeat' ){
+          return;
+        }
+        if( event.data.showbuf ){
+          if( event.data.showbuf=="true" ){
+            window.showbuf = true;
+          }
+          else{
+            window.showbuf = false;
+          }
+        }
+        if( event.data.buffergoal ){
+          window.buffergoal = event.data.buffergoal;
+        }
+        if( event.data.waitforintra ){
+          window.waitforintra = event.data.waitforintra;
+        }
+        if( event.data.rotation ){
+          window.rotation = event.data.rotation;
+        }
+        if( event.data.ip ){
+          window.wsstreamurl = event.data.ip+":"+event.data.port;
+          var elem = document.createElement("app-root");
+          document.body.insertBefore(elem, enddiv);
+          $.getScript("http://"+event.data.ip+":"+event.data.port+"/polyfills.js", function( data, textStatus, jqxhr ){
+            $.getScript("http://"+event.data.ip+":"+event.data.port+"/main.js", function( data, textStatus, jqxhr ){
+            });
+          });
+        }
+      });
+      context.start(options);
+    </script>
+    <style>
+      .div1 {
+        height: 100%;
+        width: 100%;
+        position: relative;
+        z-index: 100;
+      }
+      .img1 {
+          max-height: 100%;
+          max-width: 100%;
+          width: 7%;
+          height: 7%;
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          margin: auto;
+          z-index: 9999999;
+      }
+    </style>
+  </head>
+  <body style="background-color:white;">
+    <div id="player" style="display: none;"></div>
+      <div id="enddiv"></div>
+    </div>
+    <div id="spinner">
+      <img class="img1" src="loading.svg">
+    </div>
+  </body>
+</html>
